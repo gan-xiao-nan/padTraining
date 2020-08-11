@@ -22,7 +22,7 @@ def convertAnnotation(train_path,test_path,output_train_path,output_test_path):
             txt_index_file_path = os.path.join(train_path,filename)
             with open(txt_index_file_path, 'r') as f:
                 content = f.read()
-                train_index_file.append(content.replace('\n',','))
+                train_index_file.append(content.replace('\n',' '))
             with open(output_train_path, 'w') as f:
                 for i in range(0,len(train_image_file)):
                     f.write(train_image_file[i])
@@ -39,7 +39,7 @@ def convertAnnotation(train_path,test_path,output_train_path,output_test_path):
             txt_index_file_path = os.path.join(test_path,filename)
             with open(txt_index_file_path, 'r') as f:
                 content = f.read()
-                test_index_file.append(content.replace('\n',','))
+                test_index_file.append(content.replace('\n',' '))
             with open(output_test_path, 'w') as f:
                 for i in range(0,len(test_image_file)):
                     f.write(test_image_file[i])
