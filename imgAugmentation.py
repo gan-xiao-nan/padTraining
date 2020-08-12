@@ -1,10 +1,8 @@
-import imageio
-import imgaug as ia
-from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 import os
 import fileinput
+import numpy as np
+import cv2
 # %matplotlib inline
-ia.seed(1)
 
 def getBBlist(imgpath):
     pre,ext = os.path.splitext(imgpath)
@@ -28,18 +26,38 @@ def getBBlist(imgpath):
             else:
                 number.append(x)
     return bbList
-    
-imgPath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\train\4_1_1_1.jpg'
 
-image = imageio.imread(imgPath)
-image = ia.imresize_single_image(image, (1024, 1024))
+def ncr(n, r):
+    r = min(r, n-r)
+    numer = reduce(op.mul, range(n, n-r, -1), 1)
+    denom = reduce(op.mul, range(1, r+1), 1)
+    return numer // denom
 
-bbList = getBBlist(imgPath)
+from scipy import spatial
+
+def findNearest(bbList,k = 1):
+    neighbours = []
+    tree = spatial.KDTree(bbList)
+    for x in range(len(bbList)):
+        dupBBlist = bbList.copy()
+        # delete itself from the list, else shortest distance will always 0 (compare with itself)
+        if int(tree.query((dupBBlist[x][0],dupBBlist[x][1],dupBBlist[x][2],dupBBlist[x][3]))[0]) is 0:
+            del dupBBlist[x]
+        
+        if len(dupBBlist) is not x:
+            print(tree.query((dupBBlist[x][0],dupBBlist[x][1],dupBBlist[x][2],dupBBlist[x][3])))
+            neighbours.append(tree.query((dupBBlist[x][0],dupBBlist[x][1],dupBBlist[x][2],dupBBlist[x][3]))[1])
+    return neighbours
 
 
-bbs = BoundingBoxesOnImage([
-    BoundingBox(x1=bbList[x][0], x2=bbList[x][2], y1=bbList[x][1], y2=bbList[x][3]) for x in range(len(bbList))
-], shape=image.shape)
 
-ia.imshow(bbs.draw_on_image(image, size=2))
+
+imgpath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\train\4_1_1_1.jpg'
+image = cv2.imread(imgpath)
+#bbList = getBBlist(imgpath)
+bbList = [[1,1,1,1],[2,2,2,2],[3,3,3,3]]
+totalBB = len(bbList)
+print('result is ' ,findNearest(bbList,1))
+
+
 
