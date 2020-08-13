@@ -66,26 +66,39 @@ def dropOverlap(bigBB,bbList,k):
             if (bigBB[x][0]<=bbList[y][0] and bigBB[x][1]<=bbList[y][1]):
                 if (bigBB[x][2]>=bbList[y][2] and bigBB[x][3]>=bbList[y][3]):
                     count += 1
-                    # print(x,'\t',y,'\t',count)
             if count > k:
                 del bigBBindex[str(x)]
-                print(bigBBindex)
                 count = 0
                 break
     for x in bigBBindex.values():
         final.append(bigBB[x])
-    print(final)
-    return final
+    return final,bigBBindex
+
+def drawBBonImage(bigBBindex,myCombination,image,imgpath,k):
+    for x in bigBBindex.values():
+        image = cv2.imread(imgpath)
+        for y in range(k):
+            a = int(myCombination[x][y][0])
+            b = int(myCombination[x][y][1])
+            c = int(myCombination[x][y][2])
+            d = int(myCombination[x][y][3])
+            cv2.rectangle(image, (a,b), (c,d), (0,255,0),2)
+        cv2.imshow('t',image) 
+        cv2.waitKey(1000)   
+        image = original
 
 imgpath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\train\4_1_1_1.jpg'
 image = cv2.imread(imgpath)
+original = image.copy()
 bbList = getBBlist(imgpath)
 
 #print(bbList,len(bbList))
-myCombination = nCrList(bbList,2)
-bigBB = findBigBB(myCombination,2)
-dropOverlap(bigBB,bbList,2)
+k = 3
+myCombination = nCrList(bbList,k)
+bigBB = findBigBB(myCombination,k)
+bigBB,bigBBindex = dropOverlap(bigBB,bbList,k)
 outputFolderPath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\imgaug'
+drawBBonImage(bigBBindex,myCombination,image,imgpath,k)
 for x in range(len(bigBB)):
     cropped = image[bigBB[x][1]:bigBB[x][3],bigBB[x][0]:bigBB[x][2]]
     filename = 'cropped'+str(x)+'.jpg'
