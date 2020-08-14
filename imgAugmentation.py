@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 from itertools import combinations
 import time
+import random
 
 def getBBlist(imgpath):
     pre,ext = os.path.splitext(imgpath)
@@ -70,8 +71,12 @@ def isOverlap(small,big):
         else:
             return False
 
-    elif(((x_min<=x_min_bb) and (x_max>=x_max_bb)) | ((y_min<=y_min_bb) and (y_max>=y_max_bb))):
-        return True
+    elif((x_min<=x_min_bb) and (x_max>=x_max_bb)):
+        inside = (y_min in [i for i in range(y_min_bb,y_max_bb)]) | (y_max in [i for i in range(y_min_bb,y_max_bb)])
+        return inside
+    elif((y_min<=y_min_bb) and (y_max>=y_max_bb)):
+        inside = (y_min in [i for i in range(y_min_bb,y_max_bb)]) | (y_max in [i for i in range(y_min_bb,y_max_bb)])
+        return inside
     else:
         return False
 
@@ -105,29 +110,49 @@ def drawBBonImage(bigBBindex,myCombination,image,imgpath,k):
             b = int(myCombination[x][y][1])
             c = int(myCombination[x][y][2])
             d = int(myCombination[x][y][3])
-            cv2.rectangle(image, (a,b), (c,d), (0,255,0),2)
-        # cv2.imshow('t',image) 
-        # cv2.waitKey(1000)   
+            cv2.rectangle(image, (a,b), (c,d), (0,255,0),2) 
         image = original
+
+def addBorder(image):
+    r1 = random.randint(5,50)
+    r2 = random.randint(5,50)
+    r3 = random.randint(5,50)
+    r4 = random.randint(5,50)
+    print(r1,r2,r3,r4)
+    border = np.zeros((image.shape[0]+r3+r4,image.shape[1]+r1+r2,3))
+    print('border.shape',border.shape)
+    print(r3,image.shape[0]+r3)
+    print(r1,(image.shape[1]+r1))
+    border[r3:(image.shape[0]+r3),r1:(image.shape[1]+r1),0:3] = image
+    return r1,r2,r3,r4,border
+
+def newBBCoor(small,big,r1,r3):
+    [x_min,y_min,x_max,y_max] = small
+    [x_min_bb,x_max_bb,y_min_bb,y_max_bb] = big
+    x_min_new = x_min - x_min_bb +r1
+    y_min_new = y_min - y_min_bb +r3
+    x_max_new = x_max - x_min_bb +r1
+    y_max_new = y_max - y_min_bb +r3
+    return [x_min_new,y_min_new,x_max_new,y_max_new]
 
 imgpath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\train\49043Bottom_6_3_7.jpg'
 image = cv2.imread(imgpath)
 bbList = getBBlist(imgpath)
-k = 4
+k = 3
 myCombination = nCrList(bbList,k)
 bigBB = findBigBB(myCombination,k)
 final = dropBB(bigBB,bbList,k)
+
 outputFolderPath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\imgaug'
-# # drawBBonImage(bigBBindex,myCombination,image,imgpath,k)
+
 for x in range(len(final)):
     [x_min_bb,y_min_bb,x_max_bb,y_max_bb] = final[x]
     cropped = image[y_min_bb:y_max_bb,x_min_bb:x_max_bb]    
+    r1,r2,r3,r4,output = addBorder(cropped)
     filename = 'cropped'+str(x)+'.jpg'
     outputFileName = os.path.join(outputFolderPath,filename)
-    cv2.imwrite(outputFileName,cropped)
+    cv2.imwrite(outputFileName,output)
+    for j in range(k):
+        min_new,y_min_new,x_max_new,y_max_new] = newBBCoor(myCombination[],final[x],r1,r3)
 
-cv2.rectangle(image, (1,1), (23,899), (0,255,0),2)
-image = cv2.resize(image, (416,416), interpolation = cv2.INTER_AREA)
-cv2.imshow('i',image)
 
-cv2.waitKey(0)
