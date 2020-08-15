@@ -32,7 +32,31 @@ def getBBlist(imgpath):
 def nCrList(bbList, k):
     print('building combination ...\n')
     start = time.time()
-    output = sum([list(map(list, combinations(bbList, i))) for i in range(len(bbList) + 1)], [])
+    myCombination = list(combinations(bbList,k))
+    random.shuffle(myCombination)
+    return myCombination
+
+#     # output = sum([list(map(list,)) ], [])
+#     outputs=[]
+#     for i in range(len(bbList), len(bbList) + 1):
+#         output  =  list(combinations(bbList, i)) 
+#         output = shuffle(output)
+#         count = 0 
+#         for e in output:
+#             #Cal box
+#             #How many box in big box
+#             #More than i??
+#             #Drop
+#             #Else 
+#             #   outputs.append(e6)
+#             #   count++
+#             # if count>=k
+#             # break
+            
+#         #Drop invalid
+#         outputs.append(output)
+        
+
     myCombination = [output[x] for x in range(len(output)) if len(output[x]) == k]
     end = time.time()-start
     print('time of find combination = ',end)
@@ -93,14 +117,10 @@ def dropBB(bigBB,bbList,k):
             final.append(bigBB[i])
         else:
             del myDict[i]
-    print('myDict','\n',myDict)  
-    print('problem set\n')
-    print('bigBB\n',bigBB[23])
-    print('isOverlap\n',boolOut[23])
 
     end = time.time()-start
     print('time of dropBB = ',end)
-    return final
+    return final,myDict
 
 def drawBBonImage(bigBBindex,myCombination,image,imgpath,k):
     for x in bigBBindex.values():
@@ -135,24 +155,31 @@ def newBBCoor(small,big,r1,r3):
     y_max_new = y_max - y_min_bb +r3
     return [x_min_new,y_min_new,x_max_new,y_max_new]
 
-imgpath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\train\49043Bottom_6_3_7.jpg'
+imgpath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\train\4_1_1_1.jpg'
 image = cv2.imread(imgpath)
 bbList = getBBlist(imgpath)
-k = 3
+k = 2
 myCombination = nCrList(bbList,k)
 bigBB = findBigBB(myCombination,k)
-final = dropBB(bigBB,bbList,k)
+final,myDict = dropBB(bigBB,bbList,k)
 
 outputFolderPath = r'C:\Users\xiao-nan.gan\internProject\padTraining\images\imgaug'
 
-for x in range(len(final)):
+# for x in range(len(final)):
+#     [x_min_bb,y_min_bb,x_max_bb,y_max_bb] = final[x]
+#     cropped = image[y_min_bb:y_max_bb,x_min_bb:x_max_bb]    
+#     r1,r2,r3,r4,output = addBorder(cropped)
+#     filename = 'cropped'+str(x)+'.jpg'
+#     outputFileName = os.path.join(outputFolderPath,filename)
+#     cv2.imwrite(outputFileName,output)
+    # for j in range(k):
+    #     min_new,y_min_new,x_max_new,y_max_new] = newBBCoor(myCombination[],final[x],r1,r3)
+
+for x,index in enumerate(myDict,0):
     [x_min_bb,y_min_bb,x_max_bb,y_max_bb] = final[x]
     cropped = image[y_min_bb:y_max_bb,x_min_bb:x_max_bb]    
     r1,r2,r3,r4,output = addBorder(cropped)
     filename = 'cropped'+str(x)+'.jpg'
     outputFileName = os.path.join(outputFolderPath,filename)
     cv2.imwrite(outputFileName,output)
-    for j in range(k):
-        min_new,y_min_new,x_max_new,y_max_new] = newBBCoor(myCombination[],final[x],r1,r3)
-
-
+#     min_new,y_min_new,x_max_new,y_max_new] = newBBCoor(myCombination[],final[x],r1,r3)
